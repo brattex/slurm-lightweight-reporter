@@ -1,5 +1,8 @@
 # Slurm Lightweight Reporting Tools
 ## top_users_jobs.sh
-- Reports the top N users from Slurm logfile.
-- Defaults to ALL time unless days=XX is specified.
-- Optional: save=FILENAME else output to screen.
+Reports the top N users from Slurm logfile over X days.
+
+Usage:
+- users=N (default is top 5)
+- days=X (default is ALL TIME)
+- save=FILENAME (default is NO FILE, OUTPUT TO SCREEN)
