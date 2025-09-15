@@ -1,10 +1,11 @@
-#!/usr/bin/env bash
+i#!/usr/bin/env bash
 # top_users_by_jobs.sh — Find top N users by job count from Slurm jobcomp log filtered by X days
 
 # define parameters
 LOG_FILE="/var/log/slurm_jobcomp.log"
 TOP_N=5		# Default number of users
 DAYS=0		# Default: all time
+SAVE_FILE=""	# Default: nothing
 
 # HELPER LINES
 echo "----------------------"
@@ -15,6 +16,7 @@ echo "* edit the LOG_FILE value in the file else default is used"
 echo "----------------------"
 echo
 
+## ARGUMENT PARSER ##
 # Parse named arguments like number=10 days=30
 for arg in "$@"; do
   case $arg in
@@ -23,6 +25,9 @@ for arg in "$@"; do
       ;;
     days=*)
       DAYS="${arg#*=}"
+      ;;
+    save=*)
+      SAVE_FILE="${arg#*=}"
       ;;
     *)
       echo "❌ Unknown parameter: $arg"
@@ -51,8 +56,7 @@ if (( DAYS > 0 )); then
   cutoff=$(date -d "-$DAYS days" +%s)
 fi
 
-# Parse and count jobs
-awk -v cutoff="$cutoff" -v days="$DAYS" '
+RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
   {
     start = ""; user = "";
     for (i=1; i<=NF; i++) {
@@ -79,4 +83,12 @@ awk -v cutoff="$cutoff" -v days="$DAYS" '
       printf "%s %d\n", u, count[u];
     }
   }
-' "$LOG_FILE" | sort -k2 -nr | head -n "$TOP_N"
+' "$LOG_FILE" | sort -k2 -nr | head -n "$TOP_N")
+
+# Output to file or stdout
+if [[ -n "$SAVE_FILE" ]]; then
+  echo "$RESULT" > "$SAVE_FILE"
+  echo "💾 Results saved to $SAVE_FILE"
+else
+  echo "$RESULT"
+fi
