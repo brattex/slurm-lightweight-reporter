@@ -9,5 +9,13 @@ Usage:
 
 `./top_users_job.sh users=10 days=30`
 
+## slurm_user_report.sh
+Generates reports (ALL TIME) on specified Slurm user.
+
+Usage:
+- specify a Slurm USER_ID
+
+`./slurm_user_report.sh jdoe`
+
 ---
 Copilot helped with the syntax whenever I needed help!
