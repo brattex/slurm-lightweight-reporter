@@ -1,24 +1,48 @@
 #!/usr/bin/env bash
-# slurm_report.sh — Summarize SLURM jobs for a user from jobcomp filetxt logs
+# slurm_report.sh — Summarize SLURM jobs for a user from jobcomp logs
 
 LOG_FILE="/var/log/slurm_jobcomp.log"
+USER_ID=""
+DAYS=0
 
 # Usage Help Tips
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 [SLURM USER_ID]"
+  echo "Usage: $0 user=USER_ID [days=X]"
   echo "You must specify a USER_ID to run this report"
   exit 0
 fi
 
-# Abort if no user is specified
-if [[ -z "$1" ]]; then
-  echo "❌ No USER_ID specified. Aborting."
+# Parse named arguments
+for arg in "$@"; do
+  case $arg in
+    user=*)
+      USER_ID="${arg#*=}"
+      ;;
+    days=*)
+      DAYS="${arg#*=}"
+      ;;
+    *)
+      echo "❌ Unknown parameter: $arg"
+      echo "Usage: $0 user=USER_ID [days=X]"
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$USER_ID" ]]; then
+  echo "❌ No user specified. Aborting."
   exit 1
 fi
 
-USER_ID="$1"
 echo "📊 Running report for user: $USER_ID"
+[[ "$DAYS" -gt 0 ]] && echo "🕒 Filtering jobs from the last $DAYS days"
 
+# Calculate cutoff timestamp
+if (( DAYS > 0 )); then
+  cutoff=$(date -d "-$DAYS days" +%s)
+fi
+
+# Initialize counters
 declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["⚠"]=0 )
 total_duration=0
 job_count=0
@@ -29,7 +53,7 @@ hms() {
   printf "%02d:%02d:%02d" $((s/3600)) $(((s%3600)/60)) $((s%60))
 }
 
-# Process matching lines without subshell
+# Process matching lines
 while IFS= read -r line; do
   [[ "$line" == *"UserId=${USER_ID}"* ]] || continue
 
@@ -44,7 +68,12 @@ while IFS= read -r line; do
     start_epoch=$(date -d "${start/T/ }" +%s 2>/dev/null)
     end_epoch=$(date -d "${end/T/ }" +%s 2>/dev/null)
 
-    if [[ -n "$start_epoch" && -n "$end_epoch" && "$end_epoch" -ge "$start_epoch" ]]; then
+    # Skip if outside time window
+    if (( DAYS > 0 && start_epoch < cutoff )); then
+      continue
+    fi
+
+    if (( end_epoch >= start_epoch )); then
       duration=$((end_epoch - start_epoch))
       total_duration=$((total_duration + duration))
       ((job_count++))
@@ -62,6 +91,7 @@ while IFS= read -r line; do
 done < "$LOG_FILE"
 
 # Output summary
+echo ""
 echo "🔢 Job Status Summary for '$USER_ID':"
 printf "✅ %d\n" "${symbol_count["✅"]}"
 printf "❌ %d\n" "${symbol_count["❌"]}"
@@ -69,7 +99,7 @@ printf "🚫 %d\n" "${symbol_count["🚫"]}"
 printf "⚠ %d\n" "${symbol_count["⚠"]}"
 
 echo ""
-echo "⏱️ Duration Summary:"
+echo "⏱ Duration Summary:"
 echo "Total jobs with duration: $job_count"
 echo "Total runtime: $total_duration seconds ($(hms "$total_duration"))"
 
