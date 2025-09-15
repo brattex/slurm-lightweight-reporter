@@ -13,10 +13,10 @@ Usage:
 Generates report on specified Slurm user's jobs for X days.
 
 Usage:
-- user=USER_ID (Slurm User_ID)
+- USER_ID (Slurm User_ID)
 - days=X (default is ALL TIME)
 
-`./slurm_user_report.sh user=jdoe days=50`
+`./slurm_user_report.sh jdoe days=50`
 
 ---
 Copilot helped with the syntax whenever I needed help!
