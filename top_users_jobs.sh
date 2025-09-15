@@ -1,4 +1,4 @@
-i#!/usr/bin/env bash
+#!/usr/bin/env bash
 # top_users_by_jobs.sh — Find top N users by job count from Slurm jobcomp log filtered by X days
 
 # define parameters
