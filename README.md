@@ -7,4 +7,7 @@ Usage:
 - days=X (default is ALL TIME)
 - save=FILENAME (default is NO FILE, OUTPUT TO SCREEN)
 
-** ./top_users_job.sh users=10 days=30 **
+`./top_users_job.sh users=10 days=30`
+
+---
+Copilot helped with the syntax whenever I needed help!
