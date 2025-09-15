@@ -2,35 +2,25 @@
 # slurm_report.sh — Summarize SLURM jobs for a user from jobcomp logs
 
 LOG_FILE="/var/log/slurm_jobcomp.log"
-USER_ID=""
+USER_ID="$1"
 DAYS=0
 
 # Usage Help Tips
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 user=USER_ID [days=X]"
+  echo "Usage: $0 USER_ID [days=X]"
   echo "You must specify a USER_ID to run this report"
+  echo "Example: $0 jdoe days=30"
   exit 0
 fi
 
-# Parse named arguments
-for arg in "$@"; do
-  case $arg in
-    user=*)
-      USER_ID="${arg#*=}"
-      ;;
-    days=*)
-      DAYS="${arg#*=}"
-      ;;
-    *)
-      echo "❌ Unknown parameter: $arg"
-      echo "Usage: $0 user=USER_ID [days=X]"
-      exit 1
-      ;;
-  esac
-done
+# Parse optional days=X argument
+if [[ "$2" =~ ^days=([0-9]+)$ ]]; then
+  DAYS="${BASH_REMATCH[1]}"
+fi
 
+# Validate user
 if [[ -z "$USER_ID" ]]; then
-  echo "❌ No user specified. Aborting."
+  echo "❌ No USER_ID specified. Aborting."
   exit 1
 fi
 
