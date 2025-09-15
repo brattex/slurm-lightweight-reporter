@@ -2,19 +2,26 @@
 # slurm_report.sh — Summarize SLURM jobs for a user from jobcomp filetxt logs
 
 LOG_FILE="/var/log/slurm_jobcomp.log"
-USER_ID="${1:-fkakembo}"  # Default user if none provided
+
+# Usage Help Tips
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "Usage: $0 [SLURM USER_ID]"
+  echo "You must specify a USER_ID to run this report"
+  exit 0
+fi
+
+# Abort if no user is specified
+if [[ -z "$1" ]]; then
+  echo "❌ No USER_ID specified. Aborting."
+  exit 1
+fi
+
+USER_ID="$1"
+echo "📊 Running report for user: $USER_ID"
 
 declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["⚠"]=0 )
 total_duration=0
 job_count=0
-
-# Usage Help Tips
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 [USER_ID]"
-  echo "If USER_ID is omitted, defaults to 'fkakembo'"
-  exit 0
-fi
-
 
 # Helper: convert seconds to HH:MM:SS
 hms() {
