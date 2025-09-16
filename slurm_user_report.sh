@@ -21,7 +21,7 @@ if [[ "$2" =~ ^days=([0-9]+)$ ]]; then
 fi
 
 # Validate user
-if [[ -z "$USER_ID" ]]; then
+if [[ -z "$USER_MODE" ]]; then
   echo "❌ No USER_ID specified. Aborting."
   exit 1
 fi
