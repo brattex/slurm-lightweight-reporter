@@ -1,4 +1,11 @@
 # Slurm Lightweight Reporting Tools
+
+These tools can be run from the command line as any user and will query the Slurm job completion logs.
+
+Defaults:
+- /var/log/slurm_jobcomp.log
+
+---
 ## top_users_jobs.sh
 Reports the top N users from Slurm logfile over X days.
 
@@ -8,6 +15,8 @@ Usage:
 - save=FILENAME (default is NO FILE, OUTPUT TO SCREEN)
 
 `./top_users_job.sh users=10 days=30`
+
+---
 
 ## slurm_user_report.sh
 Generates report on specified Slurm user's jobs for X days.
