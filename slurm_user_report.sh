@@ -2,7 +2,7 @@
 # slurm_report.sh — Summarize SLURM jobs for a user from jobcomp logs
 
 LOG_FILE="/var/log/slurm_jobcomp.log"
-USER_ID="$1"
+USER_MODE="$1"
 DAYS=0
 
 # Usage Help Tips
