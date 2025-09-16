@@ -48,7 +48,8 @@ if ! [[ "$DAYS" =~ ^[0-9]+$ ]] || (( DAYS < 0 )); then
 fi
 
 echo "📊 Showing top $TOP_N users by job count from $LOG_FILE"
-echo "====================================================================="
+echo ""
+#echo "====================================================================="
 [[ "$DAYS" -gt 0 ]] && echo "🕒 Filtering jobs from the last $DAYS days"
 
 # Calculate cutoff timestamp if DAYS is set
