@@ -16,7 +16,8 @@ JobCompLoc=/var/log/slurm_jobcomp.log
 
 ---
 ## top_users_jobs.sh
-Reports the top N users from Slurm logfile over X days.
+## top_users_runtime.sh
+Reports the top N users from Slurm logfile over X days for number of jobs, total runtime (depending).
 
 Usage:
 - users=N (default is top 5)
