@@ -8,11 +8,11 @@ DAYS=0		# Default: all time
 SAVE_FILE=""	# Default: nothing
 
 # HELPER LINES
-echo "----------------------"
+echo "---"
 echo "* run this script with users=N [default is 5]"
 echo "* set number of historical days=XX [default is ALL TIME]"
 echo "* edit the LOG_FILE value in the file"
-echo "----------------------"
+echo "---"
 echo
 
 ## ARGUMENT PARSER ##
@@ -48,6 +48,7 @@ if ! [[ "$DAYS" =~ ^[0-9]+$ ]] || (( DAYS < 0 )); then
 fi
 
 echo "📊 Showing top $TOP_N users by job count from $LOG_FILE"
+echo "   ====================================================="
 [[ "$DAYS" -gt 0 ]] && echo "🕒 Filtering jobs from the last $DAYS days"
 
 # Calculate cutoff timestamp if DAYS is set
