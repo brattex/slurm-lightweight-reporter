@@ -2,7 +2,10 @@
 
 These tools can be run from the command line as any user and will query the Slurm job completion logs.
 
-## Defaults
+## Requirements
+
+* Slurm logs job completion data in plain text
+
 ### slurm.conf
 
 ```
