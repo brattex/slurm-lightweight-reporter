@@ -2,8 +2,14 @@
 
 These tools can be run from the command line as any user and will query the Slurm job completion logs.
 
-Defaults:
-- /var/log/slurm_jobcomp.log
+##Defaults
+###slurm.conf
+
+```
+JobCompType=jobcomp/filetxt
+JobCompLoc=/var/log/slurm_jobcomp.log
+```
+- `/var/log/slurm_jobcomp.log` is the *default* location if `JobCompLoc` is not specified in `slurm.conf`
 
 ---
 ## top_users_jobs.sh
