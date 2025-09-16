@@ -2,8 +2,8 @@
 
 These tools can be run from the command line as any user and will query the Slurm job completion logs.
 
-##Defaults
-###slurm.conf
+## Defaults
+### slurm.conf
 
 ```
 JobCompType=jobcomp/filetxt
