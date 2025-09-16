@@ -115,7 +115,8 @@ if [[ "$USER_MODE" =~ ^file=(.+)$ ]]; then
     echo "❌ File not found: $USER_FILE"
     exit 1
   fi
-  while IFS= read -r user; do
+  while IFS= read -r line; do
+    user=$(echo "$line" | awk '{print $1}')
     [[ -n "$user" ]] && run_report_for_user "$user"
   done < "$USER_FILE"
 else
