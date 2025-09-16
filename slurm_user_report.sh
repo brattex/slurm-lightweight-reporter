@@ -47,7 +47,7 @@ hms() {
 
 # Function to run report for a single user
 run_report_for_user() {
-  local USER_ID="$1"
+  local $USER_ID="$1"
   declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["⚠"]=0 )
   local total_duration=0
   local job_count=0
