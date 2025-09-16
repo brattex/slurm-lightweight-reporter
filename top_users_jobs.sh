@@ -9,10 +9,9 @@ SAVE_FILE=""	# Default: nothing
 
 # HELPER LINES
 echo "----------------------"
-echo "📊 Showing top $TOP_N users by total job count from $LOG_FILE"
-echo "* run this script with users=N else default to top 5"
-echo "* set number of historical days=XX else default is ALL TIME"
-echo "* edit the LOG_FILE value in the file else default is used"
+echo "* run this script with users=N [default is 5]"
+echo "* set number of historical days=XX [default is ALL TIME]"
+echo "* edit the LOG_FILE value in the file"
 echo "----------------------"
 echo
 
