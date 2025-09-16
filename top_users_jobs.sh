@@ -12,7 +12,6 @@ echo "---"
 echo "* run this script with users=N [default is 5]"
 echo "* set number of historical days=XX [default is ALL TIME]"
 echo "* edit the LOG_FILE value in the file"
-echo "---"
 echo
 
 ## ARGUMENT PARSER ##
