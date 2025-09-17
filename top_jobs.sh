@@ -1,56 +1,72 @@
 #!/usr/bin/env bash
-# top_users_by_jobs.sh — Find top N users by job count from Slurm jobcomp log filtered by X days
+# top_jobs.sh — Find top N users by job count from Slurm jobcomp log filtered by X days
 
 # define parameters
 LOG_FILE="/var/log/slurm_jobcomp.log"
-TOP_N=5		# Default number of users
-DAYS=0		# Default: all time
-SAVE_FILE=""	# Default: nothing
-
-# HELPER LINES
-echo "---"
-echo "* run this script with users=N [default is 5]"
-echo "* set number of historical days=XX [default is ALL TIME]"
-echo "* edit the LOG_FILE value in the file"
-echo "* save to file save=/path/to/file [default is output to screen]"
-echo
+TOP_N=5			# Default number of users
+DAYS=0			# Default: all time
+SAVE_FILE=""		# Default: nothing
+DISPLAY_MODE="verbose"	# Default: verbose
+OUTPUT_MODE="screen"	# Default: screen
 
 ## ARGUMENT PARSER ##
-# Parse named arguments like number=10 days=30
+# Parse named arguments like users=10 days=30 display=dashboard output=screen
 for arg in "$@"; do
   case $arg in
-    users=*)
-      TOP_N="${arg#*=}"
-      ;;
-    days=*)
-      DAYS="${arg#*=}"
-      ;;
-    save=*)
-      SAVE_FILE="${arg#*=}"
-      ;;
+    users=*) TOP_N="${arg#*=}" ;;
+    days=*) DAYS="${arg#*=}" ;;
+    save=*) SAVE_FILE="${arg#*=}" ;;
+    display=*) DISPLAY_MODE="${arg#*=}" ;;
+    output=*) OUTPUT_MODE="${arg#*=}" ;;
     *)
       echo "❌ Unknown parameter: $arg"
-      echo "Usage: $0 [users=N] [days=X]"
-      echo "Example: $0 users=10 days=30"
+      echo "Usage: $0 [users=N] [days=X] [display=dashboard|verbose] [output=file|screen|both] [save=path]"
+      echo "Example: $0 users=10 days=30 display=dashboard"
       exit 1
       ;;
   esac
 done
 
+# HELPER LINES
+if [[ "$DISPLAY_MODE" != "dashboard" ]]; then
+  echo "---"
+  echo "USAGE:  $0 users=N days=X display=[verbose|dashboard] output=[screen|file|both]"
+  echo
+  echo "* users=N         -> number of top users to show [default: 5]"
+  echo "* days=X          -> filter jobs from past X days [default: all time]"
+  echo "* display=...     -> verbose (full output) or dashboard (minimal)"
+  echo "* output=...      -> screen, file, or both"
+  echo "* save=...        -> path to save file if output includes 'file'"
+  echo "* edit LOG_FILE   -> set path to jobcomp log inside script"
+  echo
+fi
+
+
+
 # Validate inputs
+
+# users=
 if ! [[ "$TOP_N" =~ ^[0-9]+$ ]] || (( TOP_N <= 0 )); then
   echo "❌ Invalid number= value: must be a positive integer"
   exit 1
 fi
+
+# days=
 if ! [[ "$DAYS" =~ ^[0-9]+$ ]] || (( DAYS < 0 )); then
   echo "❌ Invalid days= value: must be zero or positive integer"
   exit 1
 fi
 
-echo "📊 Showing top $TOP_N users by job count from $LOG_FILE"
-echo ""
-#echo "====================================================================="
-[[ "$DAYS" -gt 0 ]] && echo "🕒 Filtering jobs from the last $DAYS days"
+if ! [[ "$DISPLAY_MODE" =~ ^(dashboard|verbose)$ ]]; then
+  echo "❌ Invalid display= value: must be 'dashboard' or 'verbose'"
+  exit 1
+fi
+
+if ! [[ "$OUTPUT_MODE" =~ ^(file|screen|both)$ ]]; then
+  echo "❌ Invalid output= value: must be 'file', 'screen', or 'both'"
+  exit 1
+fi
+
 
 # Calculate cutoff timestamp if DAYS is set
 if (( DAYS > 0 )); then
@@ -86,10 +102,29 @@ RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
   }
 ' "$LOG_FILE" | sort -k2 -nr | head -n "$TOP_N")
 
-# Output to file or stdout
-if [[ -n "$SAVE_FILE" ]]; then
-  echo "$RESULT" > "$SAVE_FILE"
-  echo "💾 Results saved to $SAVE_FILE"
+# Format output based on display mode
+if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
+  if (( DAYS > 0 )); then
+    HEADER="Top $TOP_N users by job count for past $DAYS days"
+  else
+    HEADER="Top $TOP_N users by job count for all time"
+  fi
+  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
 else
-  echo "$RESULT"
+  OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
+  [[ "$DAYS" -gt 0 ]] && OUTPUT_TEXT+="🕒 Filtering jobs from the last $DAYS days"$'\n'
+  OUTPUT_TEXT+=$'\n'"$RESULT"
+fi
+
+# Output destination logic
+if [[ "$OUTPUT_MODE" == "screen" || "$OUTPUT_MODE" == "both" ]]; then
+  echo "$OUTPUT_TEXT"
+fi
+
+if [[ "$OUTPUT_MODE" == "file" || "$OUTPUT_MODE" == "both" ]]; then
+  if [[ -z "$SAVE_FILE" ]]; then
+    SAVE_FILE="top_users_report.txt"
+  fi
+  echo "$OUTPUT_TEXT" > "$SAVE_FILE"
+  echo "💾 Results saved to $SAVE_FILE"
 fi
