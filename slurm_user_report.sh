@@ -26,9 +26,6 @@ if [[ -z "$USER_MODE" ]]; then
   exit 1
 fi
 
-echo "📊 Running report for user: $USER_ID"
-[[ "$DAYS" -gt 0 ]] && echo "🕒 Filtering jobs from the last $DAYS days"
-
 # Calculate cutoff timestamp
 if (( DAYS > 0 )); then
   cutoff=$(date -d "-$DAYS days" +%s)
