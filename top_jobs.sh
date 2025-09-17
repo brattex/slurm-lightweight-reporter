@@ -3,11 +3,13 @@
 
 # define parameters
 LOG_FILE="/var/log/slurm_jobcomp.log"
-TOP_N=5			# Default number of users
-DAYS=0			# Default: all time
-SAVE_FILE=""		# Default: nothing
-DISPLAY_MODE="verbose"	# Default: verbose
-OUTPUT_MODE="screen"	# Default: screen
+TOP_N=5				# Default number of users
+DAYS=0				# Default: all time
+SAVE_FILE="./dashboard.log"	# Default: fallback value
+DISPLAY_MODE="verbose"		# Default: verbose
+OUTPUT_MODE="screen"		# Default: screen
+WRITE_MODE="append"  		# default behavior
+
 
 ## ARGUMENT PARSER ##
 # Parse named arguments like users=10 days=30 display=dashboard output=screen
@@ -15,9 +17,11 @@ for arg in "$@"; do
   case $arg in
     users=*) TOP_N="${arg#*=}" ;;
     days=*) DAYS="${arg#*=}" ;;
-    save=*) SAVE_FILE="${arg#*=}" ;;
+    save=*) SAVE_FILE="${arg#*=}" ;;	# overrides default if provided
     display=*) DISPLAY_MODE="${arg#*=}" ;;
     output=*) OUTPUT_MODE="${arg#*=}" ;;
+    new) WRITE_MODE="new" ;; 		# overwrite mode
+    append) WRITE_MODE="append" ;;	# optional, default
     *)
       echo "❌ Unknown parameter: $arg"
       echo "Usage: $0 [users=N] [days=X] [display=dashboard|verbose] [output=file|screen|both] [save=path]"
@@ -122,9 +126,13 @@ if [[ "$OUTPUT_MODE" == "screen" || "$OUTPUT_MODE" == "both" ]]; then
 fi
 
 if [[ "$OUTPUT_MODE" == "file" || "$OUTPUT_MODE" == "both" ]]; then
-  if [[ -z "$SAVE_FILE" ]]; then
-    SAVE_FILE="top_users_report.txt"
+  if [[ "$WRITE_MODE" == "new" ]]; then
+    echo "$OUTPUT_TEXT" > "$SAVE_FILE"
+    echo "🆕 Overwrote file: $SAVE_FILE"
+  else
+    timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  #  echo -e "\n--- Report generated at $timestamp ---" >> "$SAVE_FILE"
+    echo "$OUTPUT_TEXT" >> "$SAVE_FILE"
+    echo "📎 Appended results to: $SAVE_FILE"
   fi
-  echo "$OUTPUT_TEXT" > "$SAVE_FILE"
-  echo "💾 Results saved to $SAVE_FILE"
 fi
