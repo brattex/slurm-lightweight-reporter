@@ -71,6 +71,13 @@ if ! [[ "$OUTPUT_MODE" =~ ^(file|screen|both)$ ]]; then
   exit 1
 fi
 
+# format_time function for HH:MM:SS
+format_time() {
+  local s=$1
+  printf "%02d:%02d:%02d" $((s/3600)) $(( (s%3600)/60 )) $((s%60))
+}
+
+
 
 # Calculate cutoff timestamp if DAYS is set
 if (( DAYS > 0 )); then
@@ -81,43 +88,62 @@ else
   date_range="for all time"
 fi
 
+# set cutoff as a number
+cutoff=$(date -d "-$DAYS days" +"%s")   
+
 RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
+  function to_epoch(ts) {
+    gsub("T", " ", ts)
+    return mktime(gensub(/[-:]/, " ", "g", ts))
+  }
+
   {
-    start = ""; user = "";
+    start = ""; end = ""; user = ""
     for (i=1; i<=NF; i++) {
       if ($i ~ /^StartTime=/) {
-        split($i, a, "=");
-        gsub("T", " ", a[2]);
-        start=a[2];
+        split($i, a, "="); start=a[2]
+      }
+      if ($i ~ /^EndTime=/) {
+        split($i, b, "="); end=b[2]
       }
       if ($i ~ /^UserId=/) {
-        split($i, b, "=");
-        user=b[2];
-        sub(/\(.*/, "", user);
+        split($i, c, "="); user=c[2]; sub(/\(.*/, "", user)
       }
     }
 
-    if (user != "") {
-      if (days == 0 || (start != "" && mktime(gensub(/[-:]/, " ", "g", start)) >= cutoff)) {
-        count[user]++;
+    if (user != "" && start != "" && end != "") {
+      start_epoch = to_epoch(start)
+      end_epoch = to_epoch(end)
+      runtime = end_epoch - start_epoch
+
+      if (runtime > 0 && (days == 0 || start_epoch >= cutoff)) {
+        total[user] += runtime
       }
     }
   }
+
   END {
-    for (u in count) {
-      printf "%s %d\n", u, count[u];
+    for (u in total) {
+      printf "%s %d\n", u, total[u]
     }
   }
 ' "$LOG_FILE" | sort -k2 -nr | head -n "$TOP_N")
 
+# convert to HH:MM:SS
+FORMATTED_RESULT=$(while read -r user secs; do
+  printf "%-10s %s\n" "$user" "$(format_time "$secs")"
+done <<< "$RESULT")
+
+
 # Format output based on display mode
 if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
   HEADER="Top $TOP_N users by job count : $date_range"
-  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
+#  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
+  OUTPUT_TEXT="$HEADER"$'\n'"$FORMATTED_RESULT"
 else
   OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
   [[ "$DAYS" -gt 0 ]] && OUTPUT_TEXT+="🕒 Filtering jobs from the last $DAYS days"$'\n'
-  OUTPUT_TEXT+=$'\n'"$RESULT"
+  OUTPUT_TEXT+=$'\n'"$FORMATTED_RESULT"
 fi
 
 # Output destination logic
