@@ -70,7 +70,11 @@ fi
 
 # Calculate cutoff timestamp if DAYS is set
 if (( DAYS > 0 )); then
-  cutoff=$(date -d "-$DAYS days" +%s)
+  start_date=$(date -d "-$DAYS days" +"%Y-%m-%d")
+  end_date=$(date +"%Y-%m-%d")
+  date_range="past $DAYS days ($start_date to $end_date)"
+else
+  date_range="for all time"
 fi
 
 RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
@@ -104,11 +108,7 @@ RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
 
 # Format output based on display mode
 if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
-  if (( DAYS > 0 )); then
-    HEADER="Top $TOP_N users by job count for past $DAYS days"
-  else
-    HEADER="Top $TOP_N users by job count for all time"
-  fi
+  HEADER="Top $TOP_N users by job count : $date_range"
   OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
 else
   OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
