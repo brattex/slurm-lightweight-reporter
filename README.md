@@ -15,7 +15,7 @@ JobCompLoc=/var/log/slurm_jobcomp.log
 - `/var/log/slurm_jobcomp.log` is the *default* location if `JobCompLoc` is not specified in `slurm.conf`
 
 ---
-## top_users_jobs.sh
+## top_jobs.sh
 ## top_users_runtime.sh
 Reports the top N users from Slurm logfile over X days for number of jobs, total runtime (depending).
 
