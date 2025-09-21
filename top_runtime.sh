@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# top_jobs.sh — Find top N users by job count from Slurm jobcomp log filtered by X days
+# top_jobs.sh — Find top N users by job runtime from Slurm jobcomp log filtered by X days
 
 # define parameters
 LOG_FILE="/var/log/slurm_jobcomp.log"
@@ -137,11 +137,11 @@ done <<< "$RESULT")
 
 # Format output based on display mode
 if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
-  HEADER="Top $TOP_N users by job count : $date_range"
+  HEADER="Top $TOP_N users by job runtime : $date_range"
 #  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
   OUTPUT_TEXT="$HEADER"$'\n'"$FORMATTED_RESULT"
 else
-  OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
+  OUTPUT_TEXT="📊 Showing top $TOP_N users by job runtime from $LOG_FILE"$'\n'
   [[ "$DAYS" -gt 0 ]] && OUTPUT_TEXT+="🕒 Filtering jobs from the last $DAYS days"$'\n'
   OUTPUT_TEXT+=$'\n'"$FORMATTED_RESULT"
 fi
