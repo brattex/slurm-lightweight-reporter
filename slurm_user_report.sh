@@ -32,7 +32,7 @@ if (( DAYS > 0 )); then
 fi
 
 # Initialize counters
-declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["⚠"]=0 )
+declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["🕒"]=0 )
 total_duration=0
 job_count=0
 
@@ -45,7 +45,7 @@ hms() {
 # Function to run report for a single user
 run_report_for_user() {
   local USER_ID="$1"
-  declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["⚠"]=0 )
+  declare -A symbol_count=( ["✅"]=0 ["❌"]=0 ["🚫"]=0 ["🕒"]=0 ["💥"]=0)
   local total_duration=0
   local job_count=0
 
@@ -80,7 +80,8 @@ run_report_for_user() {
       COMPLETED) ((symbol_count["✅"]++)) ;;
       FAILED)    ((symbol_count["❌"]++)) ;;
       CANCELLED|CANCELLED*) ((symbol_count["🚫"]++)) ;;
-      TIMEOUT|NODE_FAIL|PREEMPTED|OUT_OF_MEMORY|BOOT_FAIL) ((symbol_count["⚠"]++)) ;;
+      TIMEOUT)   ((symbol_count["🕒"]++)) ;;
+      NODE_FAIL|PREEMPTED|OUT_OF_MEMORY|BOOT_FAIL) ((symbol_count["💥"]++)) ;;
     esac
 
   done < "$LOG_FILE"
@@ -90,7 +91,8 @@ run_report_for_user() {
   printf "✅ %d\n" "${symbol_count["✅"]}"
   printf "❌ %d\n" "${symbol_count["❌"]}"
   printf "🚫 %d\n" "${symbol_count["🚫"]}"
-  printf "⚠ %d\n" "${symbol_count["⚠"]}"
+  printf "🕒 %d\n" "${symbol_count["🕒"]}"
+  printf "💥 %d\n" "${symbol_count["💥"]}"
 
   echo ""
   echo "⏱ Duration Summary:"
