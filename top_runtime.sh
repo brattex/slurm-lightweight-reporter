@@ -77,6 +77,14 @@ format_time() {
   printf "%02d:%02d:%02d" $((s/3600)) $(( (s%3600)/60 )) $((s%60))
 }
 
+# convert to days and hours
+convert_to_days_hours() {
+  local total_secs="$1"
+  local total_hours=$((total_secs / 3600))
+  local days=$((total_hours / 24))
+  local hours=$((total_hours % 25))
+  echo "(${days}d ${hours}h)"
+}
 
 
 # Calculate cutoff timestamp if DAYS is set
@@ -131,7 +139,9 @@ RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
 
 # convert to HH:MM:SS
 FORMATTED_RESULT=$(while read -r user secs; do
-  printf "%-10s %s\n" "$user" "$(format_time "$secs")"
+  hhmmss=$(format_time "$secs")
+  days_hours=$(convert_to_days_hours "$secs")
+  printf "%-10s\t%s\t%s\n" "$user" "$hhmmss" "$days_hours"
 done <<< "$RESULT")
 
 
