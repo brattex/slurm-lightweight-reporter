@@ -45,6 +45,22 @@ if [[ "$DISPLAY_MODE" != "dashboard" ]]; then
   echo
 fi
 
+# define pretty symbols (TODO: pretty)
+declare -A STATUS_SYMBOL=(
+  [COMPLETED]="✅"
+  [FAILED]="❌"
+  [CANCELLED]="🚫"
+  [TIMEOUT]="🕒"
+  [NODE_FAIL]="💥"
+  [OUT_OF_MEMORY]="⚠️"
+#  [PENDING]="…"
+#  [RUNNING]="▶"
+)
+
+# Fixed display order
+#STATUS_ORDER=(COMPLETED FAILED CANCELLED TIMEOUT NODE_FAIL OUT_OF_MEMORY PENDING RUNNING)
+# define display order by symbol
+SYMBOL_ORDER=(✅ ❌ 🚫 🕒 ⚠️ 💥)
 
 
 # Validate inputs
@@ -77,47 +93,93 @@ if (( DAYS > 0 )); then
   start_date=$(date -d "-$DAYS days" +"%Y-%m-%d")
   end_date=$(date +"%Y-%m-%d")
   date_range="past $DAYS days ($start_date to $end_date)"
+  cutoff=$(date -d "$start_date" +"%s")
+
 else
   date_range="for all time"
+  cutoff=0
 fi
 
+# pretty -- counting job states
 RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
+  function to_epoch(ts) {
+    gsub("T", " ", ts)
+    return mktime(gensub(/[-:]/, " ", "g", ts))
+  }
+
   {
-    start = ""; user = "";
+    user = ""; state = ""; start = ""
     for (i=1; i<=NF; i++) {
-      if ($i ~ /^StartTime=/) {
-        split($i, a, "=");
-        gsub("T", " ", a[2]);
-        start=a[2];
-      }
       if ($i ~ /^UserId=/) {
-        split($i, b, "=");
-        user=b[2];
-        sub(/\(.*/, "", user);
+        split($i, a, "="); user=a[2]; sub(/\(.*/, "", user)
+      }
+      if ($i ~ /^JobState=/) {
+        split($i, b, "="); state=b[2]
+      }
+      if ($i ~ /^StartTime=/) {
+        split($i, c, "="); start=c[2]
       }
     }
 
-    if (user != "") {
-      if (days == 0 || (start != "" && mktime(gensub(/[-:]/, " ", "g", start)) >= cutoff)) {
-        count[user]++;
+    if (user != "" && state != "") {
+      if (days == 0 || (start != "" && to_epoch(start) >= cutoff)) {
+        count[user]++
+        status[user,state]++
       }
     }
   }
+
   END {
     for (u in count) {
-      printf "%s %d\n", u, count[u];
+      printf "%s %d", u, count[u]
+      for (s in status) {
+        split(s, parts, SUBSEP)
+        if (parts[1] == u) {
+          printf " %s:%d", parts[2], status[s]
+        }
+      }
+      printf "\n"
     }
   }
 ' "$LOG_FILE" | sort -k2 -nr | head -n "$TOP_N")
 
+### post-process pretty symbols and in fixed symbol order
+FORMATTED_RESULT=$(while read -r user total rest; do
+  # map raw state to count
+  declare -A raw_state=()
+  for pair in $rest; do
+    state="${pair%%:*}"
+    count="${pair##*:}"
+    raw_state["$state"]="$count"
+  done
+
+  # Group counts by symbol
+  declare -A grouped=()
+  for state in "${!STATUS_SYMBOL[@]}"; do
+    symbol="${STATUS_SYMBOL[$state]}"
+    count="${raw_state[$state]}"
+    [[ -n "$count" ]] && grouped["$symbol"]=$((grouped["$symbol"] + count))
+  done
+
+  # Print row with tab indent and fixed symbol order and include explicit 0s for alignment
+  printf "%-12s\t%4d" "$user" "$total"
+  for symbol in "${SYMBOL_ORDER[@]}"; do
+    count="${grouped[$symbol]:-0}"
+    printf "\t%s:%d" "$symbol" "$count"
+  done
+  printf "\n"
+done <<< "$RESULT")
+
+
 # Format output based on display mode
 if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
   HEADER="Top $TOP_N users by job count : $date_range"
-  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
+#  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
+  OUTPUT_TEXT="$HEADER"$'\n'"$FORMATTED_RESULT"
 else
   OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
   [[ "$DAYS" -gt 0 ]] && OUTPUT_TEXT+="🕒 Filtering jobs from the last $DAYS days"$'\n'
-  OUTPUT_TEXT+=$'\n'"$RESULT"
+  OUTPUT_TEXT+=$'\n'"$FORMATTED_RESULT"
 fi
 
 # Output destination logic
