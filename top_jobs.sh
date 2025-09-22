@@ -129,13 +129,14 @@ read -r total completed_cnt failed_cnt cancelled_cnt timeout_cnt node_fail_cnt o
 )
 
 # map raw counts into symbols
-SUMMARY_LINE="TOTAL Jobs:${total}"
-SUMMARY_LINE+=" ✅:${completed_cnt}"
-SUMMARY_LINE+=" ❌:${failed_cnt}"
-SUMMARY_LINE+=" 🚫:${cancelled_cnt}"
-SUMMARY_LINE+=" 🕒:${timeout_cnt}"
-SUMMARY_LINE+=" 💥:${node_fail_cnt}"
-SUMMARY_LINE+=" ⚠️:${oome_cnt}"
+SUMMARY_LINE="TOTAL Jobs:${total}"$'\t'$'\t'
+SUMMARY_LINE+=" COMPLETE(✅):${completed_cnt}"$'\t'
+SUMMARY_LINE+=" JOBFAIL(❌):${failed_cnt}"$'\t'
+SUMMARY_LINE+=" CANCEL(🚫):${cancelled_cnt}"$'\n'$'\t'$'\t'$'\t'
+SUMMARY_LINE+=" TIMEOUT(🕒):${timeout_cnt}"$'\t'$'\t'
+SUMMARY_LINE+=" OOM(⚠️)):${oome_cnt}"$'\t'$'\t'
+SUMMARY_LINE+=" OTHER(💥):${node_fail_cnt}"
+
 
 
 
