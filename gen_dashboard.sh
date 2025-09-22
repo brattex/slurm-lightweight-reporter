@@ -26,7 +26,13 @@ TOP_RUNTIME_OUTPUT=$(./top_runtime.sh display=dashboard days=$DAYS)
   echo "📊 Cluster Job Dashboard"
   echo "🗓️ Date Range:  Past  $DAYS days ($(date -d "-$DAYS days" +"%Y-%m-%d") to $(date +"%Y-%m-%d"))"
   echo
+  # Job count summary
   echo "$TOP_JOBS_OUTPUT"
   echo
+  # Runtime summary
   echo "$TOP_RUNTIME_OUTPUT"
-} > "$LOGFILE"
+  echo
+} > $LOGFILE
+
+# Add Resource usage summary
+./top_res.sh display=dashboard days=$DAYS output=file save="$LOGFILE"
