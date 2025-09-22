@@ -10,6 +10,13 @@ BEGIN {
   for (i in m) {
     split(m[i], p, ":")
     status_symbol[p[1]] = p[2]
+  # define display order
+  split("✅ ❌ 🚫 🕒 💥 ⚠️", SORDER, " ")
+  
+  # build inverse map: symbol --> state name
+  for (st in status_symbol) {
+    inv_sym[ status_symbol[st] ] = st
+    }
   }
 }
 
@@ -54,7 +61,11 @@ END {
   for (u in cpu_sec) {
     cpu_hr = cpu_sec[u] / 3600
     mem_hr = mem_sec[u] / 3600
+
+    # base line: users, hours, statuses
     line = sprintf(" %-12s %8.2f CPU-hrs   %8.2f GB-hrs", u, cpu_hr, mem_hr)
+
+
 
     # append all symbols in fixed order
     for (sym in status_symbol) order[sym] = ++i  # capture order
@@ -62,11 +73,16 @@ END {
     split("✅ ❌ 🚫 🕒 💥 ⚠️", SORDER, " ")
     for (k=1; k<=length(SORDER); k++) {
       sym = SORDER[k]
-      cnt = state_count[u "," key_state(sym)] + 0
+      st = inv_sym[sym]
+      cnt = state_count[u","st] + 0
       line = line OFS sym ":" cnt
     }
-    # Prepend a sorting key
-    printf "%f|%s\n", cpu_hr, line
+
+    # set up a sorting key
+    key = (sortkey=="mem" ? mem_hr : cpu_hr)
+    # prefix it, delimiting by "|"
+    printf("%f|%s\n", key, line)
+
   }
 }
 # Helper to invert status_symbol map
