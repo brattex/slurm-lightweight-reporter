@@ -6,7 +6,7 @@ LOG_FILE="/var/log/slurm_jobcomp.log"
 TOP_N="${users:-5}"				# Default number of users
 DAYS="${days:-0}"				# Default: all time
 SAVE_FILE="${save:-resources.log}"			# Default: fallback value
-DISPLAY_MODE="${display:-verbose}" # Default: dashboard
+DISPLAY_MODE="${display:-dashboard}" 	# Default: dashboard
 OUTPUT_MODE="${output:-screen}"		# Default: screen
 WRITE_MODE="new"  		# default behavior
 

@@ -21,6 +21,10 @@ TOP_JOBS_OUTPUT=$(./top_jobs.sh display=dashboard days=$DAYS)
 # Run top_runtime and capture output
 TOP_RUNTIME_OUTPUT=$(./top_runtime.sh display=dashboard days=$DAYS)
 
+# Run top_resources and capture output
+TOP_RESOURCES_OUTPUT=$(./top_res.sh display=dashboard days=$DAYS)
+
+
 # Combine and write to dashboard.log
 {
   echo "📊 Cluster Job Dashboard"
@@ -32,7 +36,11 @@ TOP_RUNTIME_OUTPUT=$(./top_runtime.sh display=dashboard days=$DAYS)
   # Runtime summary
   echo "$TOP_RUNTIME_OUTPUT"
   echo
+  # Resources summary
+  echo "$TOP_RESOURCES_OUTPUT"
+  echo
+
 } > $LOGFILE
 
 # Add Resource usage summary
-./top_res.sh display=dashboard days=$DAYS output=file save="$LOGFILE"
+
