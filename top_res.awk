@@ -5,7 +5,8 @@ BEGIN {
   FS = " "
   OFS = "\t"
   # Map Slurm states → symbols
-  split("COMPLETED:✅ FAILED:❌ CANCELLED:🚫 TIMEOUT:🕒 NODE_FAIL:💥 OUT_OF_MEMORY:⚠", m, " ")
+  split("COMPLETED:✅ FAILED:❌ CANCELLED:🚫 TIMEOUT:🕒 NODE_FAIL:💥 OUT_OF_MEMORY:⚠️", m, " ")
+
   for (i in m) {
     split(m[i], p, ":")
     status_symbol[p[1]] = p[2]
@@ -53,19 +54,19 @@ END {
   for (u in cpu_sec) {
     cpu_hr = cpu_sec[u] / 3600
     mem_hr = mem_sec[u] / 3600
-    line = sprintf("  %-12s %8.2f CPU-hours   %8.2f GB-hours", u, cpu_hr, mem_hr)
+    line = sprintf(" %-12s %8.2f CPU-hrs   %8.2f GB-hrs", u, cpu_hr, mem_hr)
 
     # append all symbols in fixed order
     for (sym in status_symbol) order[sym] = ++i  # capture order
     # Hard-code the order you want:
-    split("✅ ❌ 🚫 🕒 💥 ⚠", SORDER, " ")
+    split("✅ ❌ 🚫 🕒 💥 ⚠️", SORDER, " ")
     for (k=1; k<=length(SORDER); k++) {
       sym = SORDER[k]
       cnt = state_count[u "," key_state(sym)] + 0
       line = line OFS sym ":" cnt
     }
     # Prepend a sorting key
-    printf "%010.6f%s\n", cpu_hr, line
+    printf "%f|%s\n", cpu_hr, line
   }
 }
 # Helper to invert status_symbol map
