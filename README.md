@@ -15,6 +15,21 @@ JobCompLoc=/var/log/slurm_jobcomp.log
 - `/var/log/slurm_jobcomp.log` is the *default* location if `JobCompLoc` is not specified in `slurm.conf`
 
 ---
+## gen_dashboard.sh
+
+### usage
+`./gen_dashboard.sh [number of days|def:all time]`
+
+
+```bash
+./gen_dashboard.sh 21
+```
+→ generates a basic dashboard for the past 21 days to default `dashboard.log`
+
+
+
+
+---
 ## top_jobs.sh
 
 ```bash

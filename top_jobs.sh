@@ -100,6 +100,45 @@ else
   cutoff=0
 fi
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# overall job summary: total and per-state counts
+# ─────────────────────────────────────────────────────────────────────────────
+read -r total completed_cnt failed_cnt cancelled_cnt timeout_cnt node_fail_cnt oome_cnt < <(
+  awk -v cutoff="$cutoff" -v days="$DAYS" '
+    function to_epoch(ts) { gsub("T"," ",ts); return mktime(gensub(/[-:]/," ","g",ts)); }
+    /^JobId=/ {
+      # filter by days if requested
+      if (days==0 || (match($0, /StartTime=([^ ]+)/,a) && to_epoch(a[1]) >= cutoff)) {
+        total++
+        match($0, /JobState=([^ ]+)/,s)
+        state = s[1]
+        if      (state=="COMPLETED")     completed++
+        else if (state=="FAILED")        failed++
+        else if (state=="CANCELLED")     cancelled++
+        else if (state=="TIMEOUT")       timeout++
+        else if (state=="NODE_FAIL")     node_fail++
+        else if (state=="OUT_OF_MEMORY") oome++
+      }
+    }
+    END {
+      # print in fixed order: total then each state
+      print total, completed, failed, cancelled, timeout, node_fail, oome
+    }
+  ' "$LOG_FILE"
+)
+
+# map raw counts into symbols
+SUMMARY_LINE="TOTAL Jobs:${total}"
+SUMMARY_LINE+=" ✅:${completed_cnt}"
+SUMMARY_LINE+=" ❌:${failed_cnt}"
+SUMMARY_LINE+=" 🚫:${cancelled_cnt}"
+SUMMARY_LINE+=" 🕒:${timeout_cnt}"
+SUMMARY_LINE+=" 💥:${node_fail_cnt}"
+SUMMARY_LINE+=" ⚠️:${oome_cnt}"
+
+
+
 # pretty -- counting job states
 RESULT=$(awk -v cutoff="$cutoff" -v days="$DAYS" '
   function to_epoch(ts) {
@@ -175,9 +214,11 @@ done <<< "$RESULT")
 if [[ "$DISPLAY_MODE" == "dashboard" ]]; then
   HEADER="Top $TOP_N users by job count : $date_range"
 #  OUTPUT_TEXT="$HEADER"$'\n'"$RESULT"
-  OUTPUT_TEXT="$HEADER"$'\n'"$FORMATTED_RESULT"
+#  OUTPUT_TEXT="$HEADER"$'\n'"$FORMATTED_RESULT"
+  OUTPUT_TEXT="$SUMMARY_LINE"$'\n'$HEADER$'\n'"$FORMATTED_RESULT"
 else
-  OUTPUT_TEXT="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
+  OUTPUT_TEXT="$SUMMARY_LINE"$'\n\n'
+  OUTPUT_TEXT+="📊 Showing top $TOP_N users by job count from $LOG_FILE"$'\n'
   [[ "$DAYS" -gt 0 ]] && OUTPUT_TEXT+="🕒 Filtering jobs from the last $DAYS days"$'\n'
   OUTPUT_TEXT+=$'\n'"$FORMATTED_RESULT"
 fi
