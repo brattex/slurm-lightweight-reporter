@@ -52,7 +52,9 @@ function to_epoch(ts,    a) {
   elapsed = ee - se
 
   cpu_sec[user] += elapsed * cpu
-  mem_sec[user] += elapsed * mem / 1024
+# 202610 divide by 1024 is converting MB to GB but all resources are already GB
+#  mem_sec[user] += elapsed * mem / 1024
+  mem_sec[user] += elapsed * mem
   state_count[user "," state]++
 }
 

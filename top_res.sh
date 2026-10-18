@@ -2,7 +2,8 @@
 # top_res.sh — Find top N users by resource use from Slurm jobcomp log filtered by X days
 
 # define parameters
-LOG_FILE="/var/log/slurm_jobcomp.log"
+LOG_FILE="/var/log/slurm/job_completions"
+#LOG_FILE="/var/log/slurm_jobcomp.log"
 TOP_N="${users:-5}"				# Default number of users
 DAYS="${days:-0}"				# Default: all time
 SAVE_FILE="${save:-resources.log}"			# Default: fallback value
@@ -113,7 +114,8 @@ fi
 #!/usr/bin/env bash
 # … your arg-parse, validation, date-range setup, cutoff calc …
 
-LOG_FILE="/var/log/slurm_jobcomp.log"
+## 202610 update
+#LOG_FILE="/var/log/slurm_jobcomp.log"
 
 # -----------------------------------------------------------------------------
 # 1) Produce Combined CPU+Mem top-N
